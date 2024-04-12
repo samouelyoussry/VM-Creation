@@ -47,7 +47,7 @@ resource "azurerm_network_interface" "VM_interface" {
 
 resource "azurerm_linux_virtual_machine" "linux_vm" {
   name                = var.vmname
-  resource_group_name = azurerm_resource_group.terraform
+  resource_group_name = azurerm_resource_group.terraform.name
   location            = var.location
   size                = "Standard_D2s_v3"
   admin_username      = "linuxusr"
