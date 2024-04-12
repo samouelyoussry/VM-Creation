@@ -22,11 +22,6 @@ locals {
 }
 
 
-resource "azurerm_resource_group" "app_grp"{
-  name=local.resource_group
-  location=local.location
-}
-
 resource "azurerm_virtual_network" "app_network" {
   name                = "app-network"
   location            = local.location
