@@ -45,7 +45,7 @@ resource "azurerm_network_interface" "VM_interface" {
   ]
 }
 
-resource "azurerm_linux_virtual_machine" "linux_vm" {
+resource "azurerm_linux_virtual_machine" "linuxvm" {
   name                = var.vmname
   resource_group_name = azurerm_resource_group.terraform.name
   location            = var.location
