@@ -23,8 +23,8 @@ locals {
 
 
 resource "azurerm_virtual_network" "app_network" {
-  name                = "app-network"
-  location            = local.location
+  name                = var.VirtualNetwork
+  location            = var.location
   resource_group_name = azurerm_resource_group.app_grp.name
   address_space       = ["10.0.0.0/16"]
 }
