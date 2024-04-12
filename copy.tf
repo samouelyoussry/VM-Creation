@@ -14,18 +14,10 @@ resource "azurerm_resource_group" "terraform" {
 
 }
 
-
-
-locals {
-  resource_group="app-grp"
-  location="North Europe"
-}
-
-
 resource "azurerm_virtual_network" "app_network" {
   name                = var.VirtualNetwork
   location            = var.location
-  resource_group_name = azurerm_resource_group.app_grp.name
+  resource_group_name = azurerm_resource_group.terraform
   address_space       = ["10.0.0.0/16"]
 }
 
