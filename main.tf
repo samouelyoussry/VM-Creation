@@ -25,7 +25,7 @@ resource "azurerm_subnet" "SubnetA" {
   name                 = var.subnet
   resource_group_name  = azurerm_resource_group.terraform.name
   virtual_network_name = azurerm_virtual_network.app_network.name
-  address_prefixe     = ["10.0.2.0/24"]
+  address_prefix     = ["10.0.2.0/24"]
   depends_on           = [azurerm_virtual_network.app_network ]
 }
 
