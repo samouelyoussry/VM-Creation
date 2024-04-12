@@ -6,6 +6,18 @@ variable "RGName" {
 variable "VirtualNetwork" {
   type = string
 }
+
+variable "subnet" {
+  type = string
+}
+
+variable "VM_interface" {
+  type = string
+}
+
+variable "vmname" {
+  type = string
+}
 variable "location" {
   type = string 
 }
