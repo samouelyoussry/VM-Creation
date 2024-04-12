@@ -11,13 +11,6 @@ variable "subnet" {
   type = string
 }
 
-variable "VnetAddress" {
-  type        = list(string)
-}
-
-variable "VMsubnet" {
-  type        = list(string)
-}
 variable "VM_interface" {
   type = string
 }
