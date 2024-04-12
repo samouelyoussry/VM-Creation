@@ -3,7 +3,7 @@ variable "RGName" {
   type = string
 }
 
-variable "VirtualNetwrok" {
+variable "VirtualNetwork" {
   type = string
 }
 variable "location" {
