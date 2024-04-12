@@ -17,7 +17,7 @@ resource "azurerm_resource_group" "terraform" {
 resource "azurerm_virtual_network" "app_network" {
   name                = var.VirtualNetwork
   location            = var.location
-  resource_group_name = azurerm_resource_group.terraform
+  resource_group_name = azurerm_resource_group.terraform.name
   address_space       = ["10.0.0.0/16"]
 }
 
