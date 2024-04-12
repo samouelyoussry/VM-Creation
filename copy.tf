@@ -1,55 +1,102 @@
-resource "random_pet" "rg_name" {
-  prefix = var.resource_group_name_prefix
+terraform {
+  required_providers {
+    azurerm = {
+      source = "hashicorp/azurerm"
+      version = "2.93.0"
+    }
+  }
 }
 
-resource "azurerm_resource_group" "rg" {
-  name     = random_pet.rg_name.id
-  location = var.resource_group_location
+provider "azurerm" {
+  subscription_id = "6912d7a0-bc28-459a-9407-33bbba641c07"
+  client_id       = "ed5d6ac4-de15-4a24-b5d3-61812c9e9941"
+  client_secret   = "HOl7Q~23UVXp4J1SlBTsQQSR~dMk2CTsNERWH"
+  tenant_id       = "70c0f6d9-7f3b-4425-a6b6-09b47643ec58"
+  features {}
 }
 
-resource "random_string" "windows_server_vm_hostname" {
-  length  = 8
-  lower   = true
-  upper   = false
-  special = false
+
+locals {
+  resource_group="app-grp"
+  location="North Europe"
 }
 
-resource "random_pet" "windows_server_public_ip_dns" {
-  prefix = "dns"
+
+resource "azurerm_resource_group" "app_grp"{
+  name=local.resource_group
+  location=local.location
 }
 
-resource "random_password" "password" {
-  length  = 16
-  special = true
-  lower   = true
-  upper   = true
-  numeric = true
+resource "azurerm_virtual_network" "app_network" {
+  name                = "app-network"
+  location            = local.location
+  resource_group_name = azurerm_resource_group.app_grp.name
+  address_space       = ["10.0.0.0/16"]
 }
 
-# The following module is a Terraform Verified Module. 
-# For more information about Verified Modules, see 
-# https://github.com/azure/terraform-azure-modules/
-module "windows_server" {
-  count                         = 3 # Define 3 Windows Server VMs
-  source                        = "Azure/compute/azurerm"
-  resource_group_name           = azurerm_resource_group.rg.name
-  vnet_subnet_id                = module.network.vnet_subnets[0]
-  is_windows_image              = true
-  vm_hostname                   = "vm-${random_string.windows_server_vm_hostname.result}-${count.index}"
-  delete_os_disk_on_termination = true
-  admin_password                = random_password.password.result
-  vm_os_simple                  = "WindowsServer"
-  public_ip_dns                 = ["${random_pet.windows_server_public_ip_dns.id}-${count.index}"]
+resource "azurerm_subnet" "SubnetA" {
+  name                 = "SubnetA"
+  resource_group_name  = local.resource_group
+  virtual_network_name = azurerm_virtual_network.app_network.name
+  address_prefixes     = ["10.0.1.0/24"]
+  depends_on = [
+    azurerm_virtual_network.app_network
+  ]
 }
 
-# The following module is a Terraform Verified Module. 
-# For more information about Verified Modules, see 
-# https://github.com/azure/terraform-azure-modules/
-module "network" {
-  source              = "Azure/network/azurerm"
-  resource_group_name = azurerm_resource_group.rg.name
-  version             = "5.2.0"
-  subnet_prefixes     = ["10.0.1.0/24"]
-  subnet_names        = ["subnet1"]
-  use_for_each        = true
+resource "azurerm_network_interface" "app_interface" {
+  name                = "app-interface"
+  location            = local.location
+  resource_group_name = local.resource_group
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.SubnetA.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id = azurerm_public_ip.app_public_ip.id
+  }
+
+  depends_on = [
+    azurerm_virtual_network.app_network,
+    azurerm_public_ip.app_public_ip
+  ]
+}
+
+resource "azurerm_linux_virtual_machine" "linux_vm" {
+  name                = "linuxvm"
+  resource_group_name = local.resource_group
+  location            = local.location
+  size                = "Standard_D2s_v3"
+  admin_username      = "linuxusr"
+  admin_password      = "Azure@123"
+  disable_password_authentication = false
+  network_interface_ids = [
+    azurerm_network_interface.app_interface.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
+
+  depends_on = [
+    azurerm_network_interface.app_interface
+  ]
+}
+
+resource "azurerm_public_ip" "app_public_ip" {
+  name                = "app-public-ip"
+  resource_group_name = local.resource_group
+  location            = local.location
+  allocation_method   = "Static"
+  depends_on = [
+    azurerm_resource_group.app_grp
+  ]
 }
