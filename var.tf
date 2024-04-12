@@ -2,6 +2,10 @@
 variable "RGName" {
   type = string
 }
+
+variable "VirtualNetwrok" {
+  type = string
+}
 variable "location" {
   type = string 
 }
