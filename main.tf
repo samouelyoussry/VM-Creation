@@ -32,7 +32,7 @@ resource "azurerm_subnet" "SubnetA" {
 resource "azurerm_network_interface" "VM_interface" {
   name                = var.VM_interface
   location            = var.location
-  resource_group_name = azurerm_resource_group.terraform
+  resource_group_name = azurerm_resource_group.terraform.name
 
   ip_configuration {
     name                          = "internal"
