@@ -11,6 +11,10 @@ variable "subnet" {
   type = string
 }
 
+variable "VMSubnet" {
+  type = string
+}
+
 variable "VM_interface" {
   type = string
 }
