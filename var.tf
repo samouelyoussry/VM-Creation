@@ -7,7 +7,7 @@ variable "VirtualNetwork" {
   type = string
 }
 
-variable "SubnetA" {
+variable "subnet" {
   type = string
 }
 
