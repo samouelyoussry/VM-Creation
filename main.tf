@@ -54,7 +54,7 @@ resource "azurerm_linux_virtual_machine" "linux_vm" {
   admin_password      = "Azure@123"
   disable_password_authentication = false
   network_interface_ids = [
-    azurerm_network_interface.app_interface.id,
+    azurerm_network_interface.VM_interface.id,
   ]
 
   os_disk {
