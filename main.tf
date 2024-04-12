@@ -48,9 +48,9 @@ resource "azurerm_network_interface" "VM_interface" {
 }
 
 resource "azurerm_linux_virtual_machine" "linux_vm" {
-  name                = "linuxvm"
-  resource_group_name = local.resource_group
-  location            = local.location
+  name                = var.vmname
+  resource_group_name = azurerm_resource_group.terraform
+  location            = var.location
   size                = "Standard_D2s_v3"
   admin_username      = "linuxusr"
   admin_password      = "Azure@123"
@@ -72,16 +72,7 @@ resource "azurerm_linux_virtual_machine" "linux_vm" {
   }
 
   depends_on = [
-    azurerm_network_interface.app_interface
+    azurerm_network_interface.VM_interface
   ]
 }
 
-resource "azurerm_public_ip" "app_public_ip" {
-  name                = "app-public-ip"
-  resource_group_name = local.resource_group
-  location            = local.location
-  allocation_method   = "Static"
-  depends_on = [
-    azurerm_resource_group.app_grp
-  ]
-}
