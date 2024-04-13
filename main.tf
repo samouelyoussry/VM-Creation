@@ -41,7 +41,7 @@ resource "azurerm_network_interface" "VM_interface" {
   }
 
   depends_on = [
-    azurerm_virtual_network.app_network
+    azurerm_virtual_network.app_network,azurerm_public_ip.app_public_ip
   ]
 }
 
@@ -74,3 +74,13 @@ resource "azurerm_linux_virtual_machine" "linuxvm" {
   ]
 }
 
+###public_IP
+resource "azurerm_public_ip" "publicIP" {
+  name                = var.publicIP
+  resource_group_name = azurerm_resource_group.terraform.name
+  location            = var.location
+  allocation_method   = "Static"
+  depends_on = [
+    azurerm_resource_group.terraform
+  ]
+}
