@@ -22,6 +22,10 @@ variable "VM_interface" {
 variable "vmname" {
   type = string
 }
+
+variable "publicIP" {
+  type = string
+}
 variable "location" {
   type = string 
 }
