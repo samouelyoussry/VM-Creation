@@ -1,5 +1,5 @@
 provider "azurerm" {
-  version = "1.8.0"
+  version = "3.99.0"
 
   subscription_id=var.subscriptionID
   client_id = var.clientID
