@@ -41,7 +41,7 @@ resource "azurerm_network_interface" "VM_interface" {
   }
 
   depends_on = [
-    azurerm_virtual_network.app_network,azurerm_public_ip.app_public_ip
+    azurerm_virtual_network.app_network,azurerm_public_ip.publicIP
   ]
 }
 
