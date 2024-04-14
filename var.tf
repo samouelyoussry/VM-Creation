@@ -55,13 +55,11 @@ variable "subnet_b_name" {
 variable "subnet_a_address_prefix" {
   description = "Address prefix of subnet A."
   type        = string
-  default     = "10.0.1.0/24"
 }
 
 variable "subnet_b_address_prefix" {
   description = "Address prefix of subnet B."
   type        = string
-  default     = "10.0.2.0/24"
 }
 
 variable "app_vm_name" {
