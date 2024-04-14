@@ -102,7 +102,7 @@ resource "azurerm_virtual_machine" "app_vm" {
   count                = 2
   name                 = var.app_vm_name[count.index]
   location             = azurerm_resource_group.test1_rg.location
-  size                 = var.VMSize
+  vm_size               = var.VMSize
   resource_group_name  = azurerm_resource_group.test1_rg.name
   network_interface_ids = [azurerm_network_interface.app_nic[count.index].id]
 
