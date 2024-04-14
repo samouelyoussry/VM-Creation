@@ -119,9 +119,7 @@ resource "azurerm_virtual_machine" "app_vm" {
   }
 
   os_profile_linux_config {
-Please note that due to the limited space here, I can only provide a partial example of the `main.tf` file. The remaining portion is as follows:
 
-```hcl
     disable_password_authentication = false
   }
 
