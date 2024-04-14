@@ -1,86 +1,131 @@
 provider "azurerm" {
-  version = "<=2.0.0"
-
-  subscription_id=var.subscriptionID
-  client_id = var.clientID
-  client_secret = var.clientSecret
-  tenant_id = var.tenantID
-  features {}
+  version = "=2.0.0"
 }
 
-resource "azurerm_resource_group" "terraform" {
-  name = var.RGName
+resource "azurerm_resource_group" "test1_rg" {
+  name     = var.test1_resource_group_name
   location = var.location
-
 }
 
-resource "azurerm_virtual_network" "app_network" {
-  name                = var.VirtualNetwork
-  location            = var.location
-  resource_group_name = azurerm_resource_group.terraform.name
-  address_space       = ["10.0.0.0/16"]
+resource "azurerm_resource_group" "test2_rg" {
+  name     = var.test2_resource_group_name
+  location = var.location
 }
 
-resource "azurerm_subnet" "SubnetA" {
-  name                 = var.subnet
-  resource_group_name  = azurerm_resource_group.terraform.name
-  virtual_network_name = azurerm_virtual_network.app_network.name
-  address_prefix     = var.VMSubnet
-  depends_on           = [azurerm_virtual_network.app_network ]
+resource "azurerm_virtual_network" "vnet" {
+  name                = var.virtual_network_name
+  address_space       = [var.vnet_address_space]
+  location            = azurerm_resource_group.test1_rg.location
+  resource_group_name = azurerm_resource_group.test1_rg.name
 }
 
-resource "azurerm_network_interface" "VM_interface" {
-  name                = var.VM_interface
-  location            = var.location
-  resource_group_name = azurerm_resource_group.terraform.name
+resource "azurerm_subnet" "subnet_a" {
+  name                 = var.subnet_a_name
+  resource_group_name  = azurerm_resource_group.test1_rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = [var.subnet_a_address_prefix]
+}
+
+resource "azurerm_subnet" "subnet_b" {
+  name                 = var.subnet_b_name
+  resource_group_name  = azurerm_resource_group.test1_rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = [var.subnet_b_address_prefix]
+}
+
+resource "azurerm_network_interface" "app_nic" {
+  count               = 2
+  name                = "${var.app_vm_name[count.index]}-nic"
+  location            = azurerm_resource_group.test1_rg.location
+  resource_group_name = azurerm_resource_group.test1_rg.name
 
   ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.SubnetA.id
+    name                          = "${var.app_vm_name[count.index]}-nic-config"
+    subnet_id                     = count.index == 0 ? azurerm_subnet.subnet_a.id : azurerm_subnet.subnet_b.id
     private_ip_address_allocation = "Dynamic"
   }
-
-  depends_on = [
-    azurerm_virtual_network.app_network,azurerm_public_ip.publicIP
-  ]
 }
 
-resource "azurerm_linux_virtual_machine" "linuxvm" {
-  name                = var.vmname
-  resource_group_name = azurerm_resource_group.terraform.name
-  location            = var.location
-  size                = "Standard_D2s_v3"
-  admin_username      = "linuxusr"
-  admin_password      = "Azure@123"
-  disable_password_authentication = false
-  network_interface_ids = [
-    azurerm_network_interface.VM_interface.id,
-  ]
+resource "azurerm_public_ip" "app_public_ip" {
+  name                = var.app_public_ip_name
+  location            = azurerm_resource_group.test1_rg.location
+  resource_group_name = azurerm_resource_group.test1_rg.name
+  allocation_method   = "Dynamic"
+}
 
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
+resource "azurerm_network_security_group" "nsg_subnet_a" {
+  name                = var.nsg_subnet_a_name
+  location            = azurerm_resource_group.test1_rg.location
+  resource_group_name = azurerm_resource_group.test1_rg.name
+
+  security_rule {
+    name                       = "allow_rdp"
+    description                = "Allow RDP"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3389"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
   }
+}
 
-  source_image_reference {
+resource "azurerm_network_security_group" "nsg_subnet_b" {
+  name                = var.nsg_subnet_b_name
+  location            = azurerm_resource_group.test1_rg.location
+  resource_group_name = azurerm_resource_group.test1_rg.name
+
+  security_rule {
+    name                       = "allow_rdp"
+    description                = "Allow RDP"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3389"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_virtual_machine" "app_vm" {
+  count                = 2
+  name                 = var.app_vm_name[count.index]
+  location             = azurerm_resource_group.test1_rg.location
+  resource_group_name  = azurerm_resource_group.test1_rg.name
+  network_interface_ids = [azurerm_network_interface.app_nic[count.index].id]
+
+  storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "18.04-LTS"
     version   = "latest"
   }
 
-  depends_on = [
-    azurerm_network_interface.VM_interface
-  ]
-}
+  storage_os_disk {
+    name              = "${var.app_vm_name[count.index]}-os-disk"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
 
-###public_IP
-resource "azurerm_public_ip" "publicIP" {
-  name                = var.publicIP
-  resource_group_name = azurerm_resource_group.terraform.name
-  location            = var.location
-  allocation_method   = "Static"
-  depends_on = [
-    azurerm_resource_group.terraform
-  ]
+  os_profile {
+    computer_name  = var.app_vm_name[count.index]
+    admin_username = var.admin_username
+    admin_password = var.admin_password
+  }
+
+  os_profile_linux_config {
+Please note that due to the limited space here, I can only provide a partial example of the `main.tf` file. The remaining portion is as follows:
+
+```hcl
+    disable_password_authentication = false
+  }
+
+  tags = {
+    environment = "test"
+  }
 }
