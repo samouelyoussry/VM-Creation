@@ -1,3 +1,15 @@
+variable "subscriptionID" {
+  type = string
+}
+variable "clientID" {
+  type = string  
+}
+variable "clientSecret" {
+  type = string  
+}
+variable "tenantID" {
+  type = string
+}
 variable "location" {
   description = "The location/region where the resources will be created."
   type        = string
