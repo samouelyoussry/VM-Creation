@@ -69,6 +69,11 @@ variable "app_vm_name" {
   type        = list(string)
   default     = ["app-vm-1", "app-vm-2"]
 }
+variable "VMSize" {
+  description = "VMSize"
+  type        = string
+  default     = "Standard_D2s_v3"
+}
 
 variable "app_public_ip_name" {
   description = "Name of the public IP attached to the app VM."
